@@ -16,7 +16,7 @@ type SpotAPI interface {
 	// 获取所有币种是否可以充提币
 	GetAllCurrencyStatus() (map[string]CurrencyStatus, error)
 
-	// 公告行情
+	// 公共行情
 	// 获取单一币种对的行情
 	GetTicker(pair CurrencyPair) (*Ticker, error)
 	// 获取所有币种对的行情
