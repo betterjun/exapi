@@ -147,4 +147,5 @@ const (
 	BITMEX      = "bitmex"
 	CRYPTOPIA   = "cryptopia"
 	HBDM        = "hbdm"
+	BITZ        = "bitz"
 )

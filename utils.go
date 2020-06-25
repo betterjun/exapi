@@ -120,7 +120,7 @@ func ToBool(v interface{}) bool {
 		}
 		return false
 	default:
-		panic("to float64 error.")
+		panic("to bool error.")
 	}
 }
 

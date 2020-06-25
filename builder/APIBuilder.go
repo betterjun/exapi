@@ -4,6 +4,7 @@ import (
 	"context"
 	. "github.com/betterjun/exapi"
 	"github.com/betterjun/exapi/binance"
+	"github.com/betterjun/exapi/bitz"
 	"github.com/betterjun/exapi/coinex"
 	"github.com/betterjun/exapi/et"
 	"github.com/betterjun/exapi/gate"
@@ -127,6 +128,8 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 		api = et.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case COINEX:
 		api = coinex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
+	case BITZ:
+		api = bitz.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	default:
 		panic("exchange name error [" + exName + "].")
 	}
@@ -158,6 +161,8 @@ func (builder *APIBuilder) BuildSpotWebsocketWithURL(exName, wsURL, proxyURL str
 		ws, err = et.NewSpotWebsocket(wsURL, proxyURL)
 	case COINEX:
 		ws, err = coinex.NewSpotWebsocket(wsURL, proxyURL)
+	case BITZ:
+		ws, err = bitz.NewSpotWebsocket(wsURL, proxyURL)
 	default:
 		log.Printf("exchange [" + exName + "] not supported.\n")
 	}
