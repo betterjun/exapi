@@ -47,7 +47,9 @@ type APIBuilder struct {
 }
 
 func NewAPIBuilder() (builder *APIBuilder) {
-	_client := &http.Client{}
+	_client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	transport := &http.Transport{
 		MaxIdleConns:    10,
 		IdleConnTimeout: 4 * time.Second,
