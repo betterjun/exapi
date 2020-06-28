@@ -3,6 +3,7 @@ package builder
 import (
 	"context"
 	. "github.com/betterjun/exapi"
+	"github.com/betterjun/exapi/aofex"
 	"github.com/betterjun/exapi/binance"
 	"github.com/betterjun/exapi/bitz"
 	"github.com/betterjun/exapi/coinex"
@@ -130,6 +131,8 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 		api = coinex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case BITZ:
 		api = bitz.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
+	case AOFEX:
+		api = aofex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	default:
 		panic("exchange name error [" + exName + "].")
 	}
