@@ -149,4 +149,5 @@ const (
 	HBDM        = "hbdm"
 	BITZ        = "bitz"
 	AOFEX       = "aofex"
+	JBEX        = "jbex"
 )

@@ -10,6 +10,7 @@ import (
 	"github.com/betterjun/exapi/et"
 	"github.com/betterjun/exapi/gate"
 	"github.com/betterjun/exapi/huobi"
+	"github.com/betterjun/exapi/jbex"
 	"github.com/betterjun/exapi/okex"
 	"github.com/betterjun/exapi/zb"
 	"log"
@@ -135,6 +136,8 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 		api = bitz.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case AOFEX:
 		api = aofex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
+	case JBEX:
+		api = jbex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	default:
 		panic("exchange name error [" + exName + "].")
 	}
@@ -168,6 +171,8 @@ func (builder *APIBuilder) BuildSpotWebsocketWithURL(exName, wsURL, proxyURL str
 		ws, err = coinex.NewSpotWebsocket(wsURL, proxyURL)
 	case BITZ:
 		ws, err = bitz.NewSpotWebsocket(wsURL, proxyURL)
+	case JBEX:
+		ws, err = jbex.NewSpotWebsocket(wsURL, proxyURL)
 	default:
 		log.Printf("exchange [" + exName + "] not supported.\n")
 	}

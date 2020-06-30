@@ -184,3 +184,11 @@ func HttpDeleteForm(client *http.Client, reqUrl string, postData url.Values, hea
 	headers["Content-Type"] = "application/x-www-form-urlencoded"
 	return NewHttpRequest(client, "DELETE", reqUrl, postData.Encode(), headers)
 }
+
+func HttpDeleteForm2(client *http.Client, reqUrl string, postData string, headers map[string]string) ([]byte, error) {
+	if headers == nil {
+		headers = map[string]string{}
+	}
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	return NewHttpRequest(client, "DELETE", reqUrl, postData, headers)
+}
