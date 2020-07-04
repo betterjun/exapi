@@ -42,12 +42,13 @@ type Bitz struct {
 /**
  * spot
  */
-func NewSpotAPI(client *http.Client, apikey, secretkey string) SpotAPI {
+func NewSpotAPI(client *http.Client, apikey, secretkey, tradepwd string) SpotAPI {
 	bitz := new(Bitz)
-	bitz.baseUrl = "https://api.bitzspeed.com/"
+	bitz.baseUrl = "https://apiv2.bit-z.pro/"
 	bitz.httpClient = client
 	bitz.accessKey = apikey
 	bitz.secretKey = secretkey
+	bitz.tradePWD = tradepwd
 	return bitz
 }
 
@@ -674,8 +675,7 @@ func (bitz *Bitz) placeLimitOrder(amount, price string, pair CurrencyPair, order
 	params["price"] = price
 	params["number"] = amount
 	params["symbol"] = pair.ToLowerSymbol("_")
-	//params["tradePwd"] = bitz.tradePWD
-	params["tradePwd"] = "nhbitzJY2020"
+	params["tradePwd"] = bitz.tradePWD
 
 	respmap, err := bitz.httpPostRequest(requrl, params)
 	if err != nil {

@@ -133,7 +133,7 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 	case COINEX:
 		api = coinex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case BITZ:
-		api = bitz.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
+		api = bitz.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey, builder.apiPassphrase)
 	case AOFEX:
 		api = aofex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case JBEX:
