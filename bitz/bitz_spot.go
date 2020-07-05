@@ -553,7 +553,7 @@ func (bitz *Bitz) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 
 	dataArr, ok := datamap["data"].([]interface{})
 	if !ok {
-		return nil, errors.New("data assert error")
+		return nil, nil
 	}
 	orders := make([]Order, 0, len(dataArr))
 	for _, v := range dataArr {
@@ -592,7 +592,7 @@ func (bitz *Bitz) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 
 	dataArr, ok := datamap["data"].([]interface{})
 	if !ok {
-		return nil, errors.New("data assert error")
+		return nil, nil
 	}
 	orders := make([]Order, 0, len(dataArr))
 	for _, v := range dataArr {
@@ -861,8 +861,9 @@ func parseDepthData(tick map[string]interface{}) *Depth {
 		depth.BidList = append(depth.BidList, dr)
 	}
 
+	sort.Sort(depth.AskList)
 	//sort.Sort(sort.Reverse(depth.AskList))
-	sort.Reverse(depth.AskList)
+	//sort.Reverse(depth.AskList)
 
 	return depth
 }

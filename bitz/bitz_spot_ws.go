@@ -217,7 +217,7 @@ func (ws *BitzSpotWs) parseTicker(msg json.RawMessage, ts int64) (ticker *Ticker
 			High:   ToFloat64(obj["h"]),
 			Low:    ToFloat64(obj["l"]),
 			Vol:    ToFloat64(obj["v"]),
-			//Buy   :, // 火币没有最优买卖价
+			//Buy   :, // 没有最优买卖价
 			//Sell  :,
 			TS: ts,
 		}
@@ -229,6 +229,15 @@ func (ws *BitzSpotWs) parseTicker(msg json.RawMessage, ts int64) (ticker *Ticker
 }
 
 func (ws *BitzSpotWs) parseDepth(msg json.RawMessage, pair CurrencyPair) (dep *Depth) {
+	/*
+		TODO 按下面的修改
+		1 深度订阅，第一次响应是全量，后面都是增量？当深度中的数量为0，表示删除之前的深度？
+		[
+		"0.1586", #价格
+		"0", #数量
+		"97.7638" #总额
+		]
+	*/
 	var depResp wsSpotDepthResponse
 	err := json.Unmarshal(msg, &depResp)
 	if err != nil {

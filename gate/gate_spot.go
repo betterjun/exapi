@@ -464,7 +464,7 @@ func (gate *Gate) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (gate *Gate) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
-	panic("not supported yet")
+	return nil, fmt.Errorf("not supported yet")
 }
 
 func (gate *Gate) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {
