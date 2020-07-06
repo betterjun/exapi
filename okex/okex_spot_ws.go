@@ -3,7 +3,6 @@ package okex
 import (
 	"bytes"
 	"compress/flate"
-	"encoding/json"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"io/ioutil"

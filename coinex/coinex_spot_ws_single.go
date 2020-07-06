@@ -1,7 +1,6 @@
 package coinex
 
 import (
-	"encoding/json"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"sort"

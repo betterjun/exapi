@@ -3,7 +3,6 @@ package bitz
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"io/ioutil"

@@ -3,10 +3,11 @@ package gate
 import (
 	"crypto/hmac"
 	"crypto/sha512"
-	"encoding/json"
+
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"math"
 	"net/http"
 	"net/url"
@@ -15,6 +16,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var _INERNAL_KLINE_PERIOD_CONVERTER = map[KlinePeriod]int{
 	KLINE_M1:    60,

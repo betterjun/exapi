@@ -1,10 +1,10 @@
 package jbex
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var _INERNAL_KLINE_PERIOD_CONVERTER = map[KlinePeriod]string{
 	KLINE_M1:    "1m",

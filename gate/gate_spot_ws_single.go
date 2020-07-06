@@ -1,7 +1,6 @@
 package gate
 
 import (
-	"encoding/json"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"sort"

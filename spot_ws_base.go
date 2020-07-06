@@ -1,7 +1,6 @@
 package exapi
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 )

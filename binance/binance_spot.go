@@ -1,10 +1,10 @@
 package binance
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
 	TICKER_URI             = "ticker/24hr?symbol=%s"

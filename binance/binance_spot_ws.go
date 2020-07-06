@@ -1,7 +1,6 @@
 package binance
 
 import (
-	"encoding/json"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"strings"

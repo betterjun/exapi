@@ -3,10 +3,11 @@ package bitz
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
+
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
 	"log"
 	"math"
@@ -18,6 +19,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var _INERNAL_KLINE_PERIOD_CONVERTER = map[KlinePeriod]string{
 	KLINE_M1:    "1min",

@@ -4,10 +4,10 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	"github.com/json-iterator/go"
 	"log"
 	"math/rand"
 	"net/http"
@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var _INERNAL_KLINE_PERIOD_CONVERTER = map[KlinePeriod]string{
 	KLINE_M1:   "1min",

@@ -2,15 +2,18 @@ package okex
 
 import (
 	"bytes"
-	"encoding/json"
+
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"github.com/google/uuid"
+	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var _INERNAL_KLINE_PERIOD_CONVERTER = map[KlinePeriod]int{
 	KLINE_M1:   60,

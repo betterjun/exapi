@@ -1,10 +1,10 @@
 package zb
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"log"
 	"math"
 	"net/http"
@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
 	MARKET_URL = "http://api.zb.live/data/v1/"

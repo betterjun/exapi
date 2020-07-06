@@ -1,10 +1,10 @@
 package huobi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	. "github.com/betterjun/exapi"
+	jsoniter "github.com/json-iterator/go"
 	"math"
 	"math/big"
 	"net/http"
@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var HBPOINT = NewCurrency("HBPOINT")
 
