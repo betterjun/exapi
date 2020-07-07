@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	jsoniter "github.com/json-iterator/go"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -398,7 +397,6 @@ func (bn *Binance) GetTrades(pair CurrencyPair, size int) ([]Trade, error) {
 	//	param.Set("fromId", strconv.Itoa(int(since)))
 	//}
 	apiUrl := bn.apiV3 + "historicalTrades?" + param.Encode()
-	//log.Println(apiUrl)
 	resp, err := HttpGet3(bn.httpClient, apiUrl, map[string]string{"X-MBX-APIKEY": bn.accessKey})
 	if err != nil {
 		return nil, err
@@ -512,7 +510,6 @@ func (bn *Binance) Cancel(orderId string, pair CurrencyPair) (bool, error) {
 	respmap := make(map[string]interface{})
 	err = json.Unmarshal(resp, &respmap)
 	if err != nil {
-		log.Println(string(resp))
 		return false, err
 	}
 
@@ -642,7 +639,6 @@ func (bn *Binance) GetAccount() (*Account, error) {
 	path := bn.apiV3 + ACCOUNT_URI + params.Encode()
 	respmap, err := HttpGet2(bn.httpClient, path, map[string]string{"X-MBX-APIKEY": bn.accessKey})
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	if _, isok := respmap["code"]; isok == true {
@@ -814,7 +810,6 @@ func (bn *Binance) placeOrder(amount, price string, pair CurrencyPair, orderType
 	respmap := make(map[string]interface{})
 	err = json.Unmarshal(resp, &respmap)
 	if err != nil {
-		log.Println(string(resp))
 		return nil, err
 	}
 

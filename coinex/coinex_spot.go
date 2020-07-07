@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	jsoniter "github.com/json-iterator/go"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -448,7 +447,6 @@ func (coinex *CoinEx) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 
 	datamap, isok := retmap["data"].([]interface{})
 	if !isok {
-		log.Println(datamap)
 		return nil, errors.New("response format error")
 	}
 
@@ -474,7 +472,6 @@ func (coinex *CoinEx) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 
 	datamap, isok := retmap["data"].([]interface{})
 	if !isok {
-		log.Println(datamap)
 		return nil, errors.New("response format error")
 	}
 
@@ -500,7 +497,6 @@ func (coinex *CoinEx) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDe
 
 	datamap, isok := retmap["data"].([]interface{})
 	if !isok {
-		log.Println(datamap)
 		return nil, errors.New("response format error")
 	}
 
@@ -541,7 +537,6 @@ func (coinex *CoinEx) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
 
 	datamap, isok := retmap["data"].([]interface{})
 	if !isok {
-		log.Println(datamap)
 		return nil, errors.New("response format error")
 	}
 
@@ -638,7 +633,6 @@ func (coinex *CoinEx) doRequest(method, uri string, params *url.Values) (map[str
 		return nil, errors.New(retmap["message"].(string))
 	}
 
-	//	log.Println(retmap)
 	datamap := retmap["data"].(map[string]interface{})
 
 	return datamap, nil

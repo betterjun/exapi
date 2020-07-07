@@ -138,6 +138,7 @@ func spot_api_public_test(ex, proxy string) {
 func testSpotHttpPrivate() {
 	exArr := []exchangeCfgs{
 		// TODO 设置各个交易所的apikey，进行测试
+
 		exchangeCfgs{exapi.AOFEX, "", "", ""},
 	}
 
@@ -152,6 +153,7 @@ func spot_api_private_test(ex, accessKey, secretKey, apiPass, proxy string) {
 	api := apiBuilder.BuildSpot(ex)
 
 	cp := exapi.NewCurrencyPairFromString("btc/usdt")
+	//cp := exapi.NewCurrencyPairFromString("neo/aq")
 
 	spot_api_private_trade_test(ex, api, cp)
 	spot_api_private_query_test(ex, api, cp)
@@ -208,14 +210,14 @@ func spot_api_private_query_order_test(ex string, api exapi.SpotAPI, currencyPai
 }
 
 func spot_api_private_trade_test(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
-	//spot_api_trade_limit_buy(ex, api, currencyPair)
+	spot_api_trade_limit_buy(ex, api, currencyPair)
 	//spot_api_trade_limit_sell(ex, api, currencyPair)
-	//spot_api_trade_market_buy(ex, api, currencyPair)
-	//spot_api_trade_market_sell(ex, api, currencyPair)
+	spot_api_trade_market_buy(ex, api, currencyPair)
+	spot_api_trade_market_sell(ex, api, currencyPair)
 }
 
 func spot_api_trade_limit_buy(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
-	orderBuy, err := api.LimitBuy(currencyPair, "7.0", "1")
+	orderBuy, err := api.LimitBuy(currencyPair, "1000", "0.01")
 	if isErrorOccurred(err) {
 		log.Fatalf("%v, LimitBuy Failed, expect %q, got %q\n", ex, nil, err)
 	}
@@ -241,7 +243,7 @@ func spot_api_trade_limit_buy(ex string, api exapi.SpotAPI, currencyPair exapi.C
 }
 
 func spot_api_trade_limit_sell(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
-	orderSell, err := api.LimitSell(currencyPair, "70000", "0.01")
+	orderSell, err := api.LimitSell(currencyPair, "70000", "0.001")
 	if isErrorOccurred(err) {
 		log.Fatalf("%v, LimitSell Failed, expect %q, got %q\n", ex, nil, err)
 	}
@@ -267,11 +269,15 @@ func spot_api_trade_limit_sell(ex string, api exapi.SpotAPI, currencyPair exapi.
 }
 
 func spot_api_trade_market_buy(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
-	marketOrderBuy, err := api.MarketBuy(currencyPair, "1")
+	marketOrderBuy, err := api.MarketBuy(currencyPair, "10")
 	if isErrorOccurred(err) {
 		log.Fatalf("%v, MarketBuy Failed, expect %q, got %q\n", ex, nil, err)
 	}
 	log.Println(ex, "MarketBuy", marketOrderBuy)
+
+	if marketOrderBuy == nil {
+		return
+	}
 
 	orderGet, err := api.GetOrder(marketOrderBuy.OrderID, currencyPair)
 	if isErrorOccurred(err) {
@@ -281,11 +287,15 @@ func spot_api_trade_market_buy(ex string, api exapi.SpotAPI, currencyPair exapi.
 }
 
 func spot_api_trade_market_sell(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
-	marketOrderSell, err := api.MarketSell(currencyPair, "0.1")
+	marketOrderSell, err := api.MarketSell(currencyPair, "2")
 	if isErrorOccurred(err) {
 		log.Fatalf("%v, MarketSell Failed, expect %q, got %q\n", ex, nil, err)
 	}
 	log.Println(ex, "MarketSell", marketOrderSell)
+
+	if marketOrderSell == nil {
+		return
+	}
 
 	orderGet, err := api.GetOrder(marketOrderSell.OrderID, currencyPair)
 	if isErrorOccurred(err) {

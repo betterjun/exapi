@@ -9,7 +9,6 @@ import (
 	. "github.com/betterjun/exapi"
 	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
-	"log"
 	"math"
 	"math/rand"
 	"net/http"
@@ -933,7 +932,7 @@ func (bitz *Bitz) httpPostRequest(strUrl string, mapParams map[string]string) (m
 	var bodyDataMap map[string]interface{}
 	err = json.Unmarshal(respData, &bodyDataMap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
+		Error("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 

@@ -3,7 +3,6 @@ package exapi
 import (
 	"errors"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -38,7 +37,7 @@ func connect(wsurl, proxyurl string) (wsConn *websocket.Conn, err error) {
 	if err != nil {
 		if resp != nil {
 			dumpData, _ := httputil.DumpResponse(resp, true)
-			log.Printf("[ws][%s] websocket dump connect:%s\n", wsurl, string(dumpData))
+			Error("[ws][%s] websocket dump connect:%s", wsurl, string(dumpData))
 		}
 		return nil, err
 	}

@@ -674,10 +674,8 @@ func (ok *OKExSpot) doRequest(httpMethod, uri, reqBody string, response interfac
 		OK_ACCESS_SIGN:       sign,
 		OK_ACCESS_TIMESTAMP:  fmt.Sprint(timestamp)})
 	if err != nil {
-		//log.Println(err)
 		return err
 	} else {
-		//logger.Error.Debug(string(resp))
 		return json.Unmarshal(resp, &response)
 	}
 }
@@ -711,7 +709,6 @@ func (ok *OKExSpot) buildRequestBody(params interface{}) (string, *bytes.Reader,
 	}
 	data, err := json.Marshal(params)
 	if err != nil {
-		//log.Println(err)
 		return "", nil, errors.New("json convert string error")
 	}
 
@@ -724,7 +721,6 @@ func (ok *OKExSpot) buildRequestBody(params interface{}) (string, *bytes.Reader,
 func (ok *OKExSpot) doParamSign(httpMethod, uri, requestBody string) (string, string) {
 	timestamp := ok.isoTime()
 	preText := fmt.Sprintf("%s%s%s%s", timestamp, strings.ToUpper(httpMethod), uri, requestBody)
-	//log.Println("preHash", preText)
 	sign, _ := GetParamHmacSHA256Base64Sign(ok.ApiSecretKey, preText)
 	return sign, timestamp
 }

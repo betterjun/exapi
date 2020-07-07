@@ -6,7 +6,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"io/ioutil"
-	"log"
 	"strings"
 	"time"
 )
@@ -262,7 +261,6 @@ func toSymbol(si interface{}) (market CurrencyPair) {
 	symbolStr, _ := si.(string)
 	sA := strings.Split(symbolStr, "-")
 	if len(sA) != 2 {
-		log.Printf("解析货币对[%v]错误", si)
 		return
 	}
 	return NewCurrencyPairFromString(strings.Join(sA, "/"))
@@ -273,7 +271,6 @@ func toTimestamp(si interface{}) int64 {
 	tsStr, _ := si.(string)
 	date, err := time.Parse(time.RFC3339, tsStr)
 	if err != nil {
-		log.Printf("解析时间戳[%v]错误%v", si, err)
 		return 0
 	}
 

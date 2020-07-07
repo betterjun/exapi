@@ -720,8 +720,6 @@ func (hbpro *HuoBiPro) GetAccount() (*Account, error) {
 		return nil, err
 	}
 
-	//log.Println(respmap)
-
 	if respmap["status"].(string) != "ok" {
 		return nil, errors.New(respmap["err-code"].(string))
 	}
@@ -999,13 +997,10 @@ func (hbpro *HuoBiPro) GetAccountInfo(acc string) (AccountInfo, error) {
 	params := &url.Values{}
 	hbpro.buildPostForm("GET", path, params)
 
-	//log.Println(hbpro.baseUrl + path + "?" + params.Encode())
-
 	respmap, err := HttpGet(hbpro.httpClient, hbpro.baseUrl+path+"?"+params.Encode())
 	if err != nil {
 		return AccountInfo{}, err
 	}
-	//log.Println(respmap)
 	if respmap["status"].(string) != "ok" {
 		return AccountInfo{}, errors.New(respmap["err-code"].(string))
 	}
@@ -1022,7 +1017,6 @@ func (hbpro *HuoBiPro) GetAccountInfo(acc string) (AccountInfo, error) {
 			break
 		}
 	}
-	//log.Println(respmap)
 	return info, nil
 }
 

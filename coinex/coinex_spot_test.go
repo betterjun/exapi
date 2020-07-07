@@ -74,7 +74,6 @@ func TestSpotAPICommon(t *testing.T) {
 		_, ok := ssm[symbol]
 		assert.Equal(t, true, ok, "ticker "+symbol+" not found")
 	}
-	//log.Println(ssm)
 
 	depth, err := api.GetDepth(pair, 20, 0)
 	assert.Equal(t, nil, err)

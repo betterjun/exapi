@@ -6,7 +6,6 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -29,17 +28,16 @@ func NewHttpRequest(client *http.Client, reqType string, reqUrl string, postData
 
 	resp, err := client.Do(req)
 	if err != nil {
+		Error("http request failed, url:%s, err:%s", reqUrl, err)
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
 	bodyData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		Error("read http body failed, url:%s, err:%s", reqUrl, err)
 		return nil, err
 	}
-
-	//log.Printf("NewHttpRequest resp: %s\n", string(bodyData))
 
 	if resp.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("HttpStatusCode:%d ,Desc:%s", resp.StatusCode, string(bodyData)))
@@ -57,7 +55,6 @@ func HttpGet(client *http.Client, reqUrl string) (map[string]interface{}, error)
 	var bodyDataMap map[string]interface{}
 	err = json.Unmarshal(respData, &bodyDataMap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 
@@ -77,7 +74,6 @@ func HttpGet2(client *http.Client, reqUrl string, headers map[string]string) (ma
 	var bodyDataMap map[string]interface{}
 	err = json.Unmarshal(respData, &bodyDataMap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 
@@ -97,7 +93,6 @@ func HttpGet3(client *http.Client, reqUrl string, headers map[string]string) ([]
 	var bodyDataMap []interface{}
 	err = json.Unmarshal(respData, &bodyDataMap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 
@@ -116,7 +111,6 @@ func HttpGet4(client *http.Client, reqUrl string, headers map[string]string, res
 
 	err = json.Unmarshal(respData, result)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return err
 	}
 

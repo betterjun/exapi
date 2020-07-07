@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	jsoniter "github.com/json-iterator/go"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -418,7 +417,6 @@ func (zb *Zb) GetOrder(orderId string, pair CurrencyPair) (*Order, error) {
 
 	resp, err := HttpPostForm(zb.httpClient, TRADE_URL+"getOrder", params)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	ordermap := make(map[string]interface{})
@@ -554,7 +552,6 @@ func (zb *Zb) GetOrders(pair CurrencyPair, size int) ([]Order, error) {
 
 	respstr := string(resp)
 	if strings.Contains(respstr, "\"code\":3001") {
-		log.Println(respstr)
 		return nil, nil
 	}
 
@@ -678,8 +675,6 @@ func parseOrder(order *Order, ordermap map[string]interface{}) {
 		order.Side = SELL
 	case 1:
 		order.Side = BUY
-	default:
-		log.Printf("unknown order type %f", orType)
 	}
 }
 

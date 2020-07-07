@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	. "github.com/betterjun/exapi"
 	"github.com/betterjun/exapi/aofex"
 	"github.com/betterjun/exapi/binance"
@@ -13,7 +14,6 @@ import (
 	"github.com/betterjun/exapi/jbex"
 	"github.com/betterjun/exapi/okex"
 	"github.com/betterjun/exapi/zb"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -156,7 +156,7 @@ func (builder *APIBuilder) BuildSpotWebsocketWithURL(exName, wsURL, proxyURL str
 	case JBEX:
 		ws, err = jbex.NewSpotWebsocket(wsURL, proxyURL)
 	default:
-		log.Printf("exchange [" + exName + "] not supported.\n")
+		err = fmt.Errorf("exchange [" + exName + "] not supported.")
 	}
 
 	return ws, err

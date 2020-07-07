@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	jsoniter "github.com/json-iterator/go"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -623,7 +622,6 @@ func (jbex *JbexSpot) httpPost(requrl string, params map[string]string) (map[str
 	var respmap map[string]interface{}
 	err = json.Unmarshal(respData, &respmap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 
@@ -647,7 +645,6 @@ func (jbex *JbexSpot) httpDelete(requrl string, params map[string]string) (map[s
 	var respmap map[string]interface{}
 	err = json.Unmarshal(respData, &respmap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 

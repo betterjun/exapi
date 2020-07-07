@@ -8,7 +8,6 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"github.com/json-iterator/go"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -850,7 +849,6 @@ func (aofex *Aofex) httpPost(requrl string, params map[string]string) (map[strin
 	var respmap map[string]interface{}
 	err = json.Unmarshal(respData, &respmap)
 	if err != nil {
-		log.Printf("json.Unmarshal failed : %v, resp %s\n", err, string(respData))
 		return nil, err
 	}
 
