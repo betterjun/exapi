@@ -6,16 +6,17 @@ import (
 	"fmt"
 	. "github.com/betterjun/exapi"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"time"
 )
 
 // 推送信息格式
 type wsSpotResponse struct {
-	Params map[string]interface{} `json:"params"` // 订阅的参数
-	Action string                 `json:"action"` // 订阅类型
-	Ts     int64                  `json:"time"`   // 消息时间
-	Data   json.RawMessage
+	Params interface{} `json:"params"` // 订阅的参数
+	Action string      `json:"action"` // 订阅类型
+	Ts     int64       `json:"time"`   // 消息时间
+	Data   interface{} `json:"data"`   // 返回数据
 }
 
 type wsSpotDepthResponse struct {
@@ -146,47 +147,52 @@ func (ws *BitzSpotWs) OnMessage(data []byte) (err error) {
 
 	switch resp.Action {
 	case "Pushdata.market":
-		ws.parseTicker(resp.Data, resp.Ts)
+		if ws.OnTicker != nil {
+			ticker := ws.parseTicker(resp.Data, resp.Ts)
+			if ticker != nil {
+				ws.OnTicker(ticker)
+			}
+		}
 	case "Pushdata.depth":
 		// "params":{"_CDID":"100002","dataType":"1","symbol":"xrp_usdt","type":"depth"}
-		k, _ := resp.Params["symbol"].(string)
-		pair := NewCurrencyPairFromString(strings.Replace(k, "_", "/", -1))
-		depth := ws.parseDepth(resp.Data, pair)
-		if depth != nil {
-			depth.TS = resp.Ts
-			if ws.OnDepth != nil {
+		if ws.OnDepth != nil {
+			params, ok := resp.Params.(map[string]interface{})
+			if !ok {
+				Error("[ws][%s] websocket depth params assert failed:%v", ws.GetURL())
+				return nil
+			}
+			k, _ := params["symbol"].(string)
+			pushType, _ := params["type"].(string) // 以此字段是否存在来判定是全量还是增量推送,存在这个字段，则是全量
+			pair := NewCurrencyPairFromString(strings.Replace(k, "_", "/", -1))
+			depth := ws.parseDepth(resp.Data, pair, len(pushType) != 0)
+			if depth != nil {
+				depth.TS = resp.Ts
 				ws.OnDepth(depth)
 			}
 		}
 	case "Pushdata.order":
 		//"params":{"symbol":"xrp_usdt"}
-		k, _ := resp.Params["symbol"].(string)
-		pair := NewCurrencyPairFromString(strings.Replace(k, "_", "/", -1))
-		trade := ws.parseTrade(resp.Data, pair)
 		if ws.OnTrade != nil {
+			params, ok := resp.Params.(map[string]interface{})
+			if !ok {
+				Error("[ws][%s] websocket trade params assert failed:%v", ws.GetURL())
+				return nil
+			}
+			k, _ := params["symbol"].(string)
+			pair := NewCurrencyPairFromString(strings.Replace(k, "_", "/", -1))
+			trade := ws.parseTrade(resp.Data, pair)
 			ws.OnTrade(trade)
 		}
 
 	default:
 		Log("[ws][%s] websocket 未知的topic数据:%v", ws.GetURL(), resp.Action)
-		return nil
 	}
 
 	return nil
 }
 
-func (ws *BitzSpotWs) parseTicker(msg json.RawMessage, ts int64) (ticker *Ticker) {
-	tickerMap := map[string]interface{}{}
-	err := json.Unmarshal(msg, &tickerMap)
-	if err != nil {
-		Log("[ws][%s] websocket parseTicker 错误:%v", ws.GetURL(), err)
-		return nil
-	}
-
-	if ws.OnTicker == nil {
-		return nil
-	}
-
+func (ws *BitzSpotWs) parseTicker(msg interface{}, ts int64) (ticker *Ticker) {
+	tickerMap := msg.(map[string]interface{})
 	for k, v := range tickerMap {
 		pair := NewCurrencyPairFromString(strings.Replace(k, "_", "/", -1))
 		pairExist := ws.GetPairByStream(ws.FormatTopicName(STREAM_TICKER, pair))
@@ -208,7 +214,7 @@ func (ws *BitzSpotWs) parseTicker(msg json.RawMessage, ts int64) (ticker *Ticker
 			            "nP": 4,  #数量展示小数点位
 			            "pP": 2, #价格展示小数点位
 		*/
-		ticker := &Ticker{
+		return &Ticker{
 			Market: pair,
 			Symbol: pair.ToLowerSymbol("/"),
 			Open:   ToFloat64(obj["o"]),
@@ -220,14 +226,12 @@ func (ws *BitzSpotWs) parseTicker(msg json.RawMessage, ts int64) (ticker *Ticker
 			//Sell  :,
 			TS: ts,
 		}
-
-		ws.OnTicker(ticker)
 	}
 
 	return nil
 }
 
-func (ws *BitzSpotWs) parseDepth(msg json.RawMessage, pair CurrencyPair) (dep *Depth) {
+func (ws *BitzSpotWs) parseDepth(msg interface{}, pair CurrencyPair, fullUpdate bool) (dep *Depth) {
 	/*
 		TODO 按下面的修改
 		1 深度订阅，第一次响应是全量，后面都是增量？当深度中的数量为0，表示删除之前的深度？
@@ -237,10 +241,9 @@ func (ws *BitzSpotWs) parseDepth(msg json.RawMessage, pair CurrencyPair) (dep *D
 		"97.7638" #总额
 		]
 	*/
-	var depResp wsSpotDepthResponse
-	err := json.Unmarshal(msg, &depResp)
-	if err != nil {
-		Log("[ws][%s] websocket parseDepth 错误:%v", ws.GetURL(), err)
+
+	data, ok := msg.(map[string]interface{})
+	if !ok {
 		return nil
 	}
 
@@ -248,32 +251,99 @@ func (ws *BitzSpotWs) parseDepth(msg json.RawMessage, pair CurrencyPair) (dep *D
 	dep.Market = pair
 	dep.Symbol = pair.ToLowerSymbol("/")
 
-	for _, bid := range depResp.Bids {
-		dep.BidList = append(dep.BidList, DepthRecord{ToFloat64(bid[0]), ToFloat64(bid[1])})
+	depMap, ok := ws.spotPairDepthMap[dep.Symbol]
+	if !ok {
+		depMap = &depthCacheMap{
+			asksMap: make(map[float64]float64),
+			bidsMap: make(map[float64]float64),
+		}
+		ws.spotPairDepthMap[dep.Symbol] = depMap
 	}
 
-	for _, ask := range depResp.Asks {
-		dep.AskList = append(dep.AskList, DepthRecord{ToFloat64(ask[0]), ToFloat64(ask[1])})
+	bids, _ := data["bids"].([]interface{})
+	asks, _ := data["asks"].([]interface{})
+
+	if fullUpdate {
+		depMap.asksMap = make(map[float64]float64)
+		depMap.bidsMap = make(map[float64]float64)
+
+		for _, v := range bids {
+			bid, _ := v.([]interface{})
+			price := ToFloat64(bid[0])
+			amount := ToFloat64(bid[1])
+			dep.BidList = append(dep.BidList, DepthRecord{price, amount})
+			depMap.bidsMap[price] = amount
+		}
+
+		for _, v := range asks {
+			ask, _ := v.([]interface{})
+			price := ToFloat64(ask[0])
+			amount := ToFloat64(ask[1])
+			dep.AskList = append(dep.AskList, DepthRecord{price, amount})
+			depMap.asksMap[price] = amount
+		}
+
+		return dep
 	}
+
+	// 增量更新
+	for _, v := range bids {
+		bid, _ := v.([]interface{})
+		price := ToFloat64(bid[0])
+		amount := ToFloat64(bid[1])
+		if amount == 0 {
+			delete(depMap.bidsMap, price)
+		} else {
+			depMap.bidsMap[price] = amount
+		}
+	}
+	dep.BidList = getDepthList(depMap.bidsMap, true)
+
+	for _, v := range asks {
+		ask, _ := v.([]interface{})
+		price := ToFloat64(ask[0])
+		amount := ToFloat64(ask[1])
+		if amount == 0 {
+			delete(depMap.asksMap, price)
+		} else {
+			depMap.asksMap[price] = amount
+		}
+	}
+	dep.AskList = getDepthList(depMap.asksMap, false)
 
 	return dep
 }
 
-func (ws *BitzSpotWs) parseTrade(msg json.RawMessage, pair CurrencyPair) (trades []Trade) {
-	traderMap := make([]interface{}, 0)
-	err := json.Unmarshal(msg, &traderMap)
-	if err != nil {
-		Log("[ws][%s] websocket parseTrade 错误:%v", ws.GetURL(), err)
-		return nil
+func getDepthList(m map[float64]float64, reverse bool) (list DepthRecords) {
+	keys := make([]float64, 0, len(m))
+	for k, _ := range m {
+		keys = append(keys, k)
 	}
 
-	if ws.OnTrade == nil {
-		return nil
+	sort.Float64s(keys)
+	list = make(DepthRecords, 0, len(m))
+
+	if reverse {
+		for i := len(keys) - 1; i >= 0; i-- {
+			list = append(list, DepthRecord{keys[i], m[keys[i]]})
+		}
+	} else {
+		for _, k := range keys {
+			list = append(list, DepthRecord{k, m[k]})
+		}
 	}
 
-	trades = make([]Trade, 0, len(traderMap))
-	for _, v := range traderMap {
-		obj, _ := v.(map[string]interface{})
+	return list
+}
+
+func (ws *BitzSpotWs) parseTrade(msg interface{}, pair CurrencyPair) (trades []Trade) {
+	tradeMap, _ := msg.([]interface{})
+	trades = make([]Trade, 0, len(tradeMap))
+	for _, v := range tradeMap {
+		obj, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
 		/*
 			"id": 1216814315, #id

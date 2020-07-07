@@ -24,9 +24,9 @@ import (
 "tick"
 */
 type wsSpotResponse struct {
-	Ch   string `json:"ch"`
-	Ts   int64  `json:"ts"`
-	Tick json.RawMessage
+	Ch   string                 `json:"ch"`
+	Ts   int64                  `json:"ts"`
+	Tick map[string]interface{} `json:"tick"`
 }
 
 type wsSpotTradeResponse struct {
@@ -124,7 +124,8 @@ func (ws *HuobiSpotWs) FormatTopicName(topic string, pair CurrencyPair) string {
 	case STREAM_TICKER:
 		return fmt.Sprintf("market.%s.detail", symbol)
 	case STREAM_DEPTH:
-		return fmt.Sprintf("market.%s.depth.step0", symbol)
+		//return fmt.Sprintf("market.%s.depth.step0", symbol)
+		return fmt.Sprintf("market.%s.mbp.refresh.%v", symbol, 20)
 	case STREAM_TRADE:
 		return fmt.Sprintf("market.%s.trade.detail", symbol)
 	default:
@@ -227,7 +228,7 @@ func (ws *HuobiSpotWs) OnMessage(data []byte) (err error) {
 		if ws.OnTicker != nil {
 			ws.OnTicker(ticker)
 		}
-	case "depth":
+	case "mbp":
 		depth := ws.parseDepth(resp.Tick, pair)
 		depth.TS = resp.Ts
 		if ws.OnDepth != nil {
@@ -247,93 +248,58 @@ func (ws *HuobiSpotWs) OnMessage(data []byte) (err error) {
 	return nil
 }
 
-func (ws *HuobiSpotWs) parseTicker(msg json.RawMessage, pair CurrencyPair) (ticker *Ticker) {
-	var tr wsSpotTickerResponse
-	err := json.Unmarshal(msg, &tr)
-	if err != nil {
-		Log("[ws][%s] websocket parseTicker 错误:%v", ws.GetURL(), err)
-		return nil
-	}
-
+func (ws *HuobiSpotWs) parseTicker(datamap map[string]interface{}, pair CurrencyPair) (ticker *Ticker) {
 	return &Ticker{
 		Market: pair,
 		Symbol: pair.ToLowerSymbol("/"),
-		Open:   tr.Open,
-		Last:   tr.Close,
-		High:   tr.High,
-		Low:    tr.Low,
-		Vol:    tr.Amount,
+		Open:   ToFloat64(datamap["open"]),
+		Last:   ToFloat64(datamap["close"]),
+		High:   ToFloat64(datamap["high"]),
+		Low:    ToFloat64(datamap["low"]),
+		Vol:    ToFloat64(datamap["vol"]),
 		//Buy   :, // 火币没有最优买卖价
 		//Sell  :,
-		TS: tr.Ts,
+		TS: ToInt64(datamap["ts"]),
 	}
 }
 
-func (ws *HuobiSpotWs) parseDepth(msg json.RawMessage, pair CurrencyPair) (dep *Depth) {
-	var depResp wsSpotDepthResponse
-	err := json.Unmarshal(msg, &depResp)
-	if err != nil {
-		Log("[ws][%s] websocket parseDepth 错误:%v", ws.GetURL(), err)
-		return nil
-	}
-
+func (ws *HuobiSpotWs) parseDepth(datamap map[string]interface{}, pair CurrencyPair) (dep *Depth) {
 	dep = &Depth{}
 	dep.Market = pair
 	dep.Symbol = pair.ToLowerSymbol("/")
 
-	for _, bid := range depResp.Bids {
-		dep.BidList = append(dep.BidList, DepthRecord{bid[0], bid[1]})
+	bids, _ := datamap["bids"].([]interface{})
+	for _, bid := range bids {
+		v, _ := bid.([]interface{})
+		dep.BidList = append(dep.BidList, DepthRecord{ToFloat64(v[0]), ToFloat64(v[1])})
 	}
 
-	for _, ask := range depResp.Asks {
-		dep.AskList = append(dep.AskList, DepthRecord{ask[0], ask[1]})
+	asks, _ := datamap["asks"].([]interface{})
+	for _, ask := range asks {
+		v, _ := ask.([]interface{})
+		dep.AskList = append(dep.AskList, DepthRecord{ToFloat64(v[0]), ToFloat64(v[1])})
 	}
 
 	return dep
 }
 
-func (ws *HuobiSpotWs) parseTrade(msg json.RawMessage, pair CurrencyPair) (trades []Trade) {
-	var tradeResp wsSpotTradeResponse
-	err := json.Unmarshal(msg, &tradeResp)
-	if err != nil {
-		Log("[ws][%s] websocket parseTrade 错误:%v", ws.GetURL(), err)
-		return nil
-	}
-
-	trades = make([]Trade, 0)
-	for _, v := range tradeResp.Data {
+func (ws *HuobiSpotWs) parseTrade(datamap map[string]interface{}, pair CurrencyPair) (trades []Trade) {
+	tradesArr, _ := datamap["data"].([]interface{})
+	trades = make([]Trade, 0, len(tradesArr))
+	for _, v := range tradesArr {
+		obj, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
 		trades = append(trades, Trade{
-			Tid:    v.TradeId,
-			Price:  v.Price,
-			Amount: v.Amount,
-			Side:   AdaptTradeSide(v.Direction),
-			TS:     v.Ts,
+			Tid:    ToInt64(obj["tradeId"]),
+			Price:  ToFloat64(obj["price"]),
+			Amount: ToFloat64(obj["amount"]),
+			Side:   AdaptTradeSide(ToString(obj["direction"])),
+			TS:     ToInt64(obj["ts"]),
 			Market: pair,
 			Symbol: pair.ToLowerSymbol("/"),
 		})
 	}
 	return trades
-}
-
-func (ws *HuobiSpotWs) parseKline(msg json.RawMessage, pair CurrencyPair) (klines []Kline) {
-	var klineResp wsSpotKlineResponse
-	err := json.Unmarshal(msg, &klineResp)
-	if err != nil {
-		Log("[ws][%s] websocket parseKline 错误:%v", ws.GetURL(), err)
-		return nil
-	}
-
-	klines = make([]Kline, 0)
-	klines = append(klines, Kline{
-		Market: pair,
-		Symbol: pair.ToLowerSymbol("/"),
-		TS:     klineResp.Id,
-		Open:   klineResp.Open,
-		Close:  klineResp.Close,
-		High:   klineResp.High,
-		Low:    klineResp.Low,
-		Vol:    klineResp.Vol,
-	})
-
-	return klines
 }

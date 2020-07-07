@@ -108,9 +108,9 @@ type ErrorStruct struct {
 
 // {"method": "today.update", "params": ["BTC/USDT", {"low": "1.2012564", "open": "1.370376", "last": "1.4508153", "high": "6000", "volume": "2851.10447902", "deal": "5651.1018913680194814"}], "id": null}
 type wsSpotResponse struct {
-	Method string          `json:"method"` // 方法
-	Params json.RawMessage `json:"params"` // update 消息有次字段
-	Error  *ErrorStruct    `json:"error"`  // 响应消息有此字段
+	Method string        `json:"method"` // 方法
+	Params []interface{} `json:"params"` // update 消息有次字段
+	Error  *ErrorStruct  `json:"error"`  // 响应消息有此字段
 }
 
 func (ws *EtSpotWsSingle) OnMessage(data []byte) (err error) {
@@ -132,20 +132,20 @@ func (ws *EtSpotWsSingle) OnMessage(data []byte) (err error) {
 	// 数据包
 	switch resp.Method {
 	case "today.update":
-		ticker := ws.parseTicker(resp.Params)
 		if ws.OnTicker != nil {
+			ticker := ws.parseTicker(resp.Params)
 			ws.OnTicker(ticker)
 		}
 	case "depth.update":
-		dep := ws.parseDepth(resp.Params)
 		if ws.OnDepth != nil {
+			dep := ws.parseDepth(resp.Params)
 			ws.OnDepth(dep)
 		}
-	//case "trades":
-	//	trades := ws.parseTrade(resp, pair)
-	//	if ws.OnTrade != nil {
-	//		ws.OnTrade(trades)
-	//	}
+	case "trades":
+		if ws.OnTrade != nil {
+			trades := ws.parseTrade(resp.Params)
+			ws.OnTrade(trades)
+		}
 	default:
 		return nil
 	}
@@ -153,16 +153,11 @@ func (ws *EtSpotWsSingle) OnMessage(data []byte) (err error) {
 	return nil
 }
 
-func (ws *EtSpotWsSingle) parseTicker(params json.RawMessage) *Ticker {
+func (ws *EtSpotWsSingle) parseTicker(resp []interface{}) *Ticker {
 	/*
 		["BTC/USDT", {"low": "1.2012564", "open": "1.370376", "last": "1.4508153", "high": "6000", "volume": "2851.10447902", "deal": "5651.1018913680194814"}]
 	*/
 
-	resp := make([]interface{}, 0)
-	err := json.Unmarshal(params, &resp)
-	if err != nil {
-		return nil
-	}
 	if len(resp) != 2 {
 		return nil
 	}
@@ -185,15 +180,11 @@ func (ws *EtSpotWsSingle) parseTicker(params json.RawMessage) *Ticker {
 	return ticker
 }
 
-func (ws *EtSpotWsSingle) parseDepth(params json.RawMessage) (dep *Depth) {
+func (ws *EtSpotWsSingle) parseDepth(resp []interface{}) (dep *Depth) {
 	/*
 		[true, {"asks": [["6000", "0.8"], ["6728.73411484", "0.8"], ["6729.15266678", "0.1"], ["6729.29131043", "0.2"], ["6742.86835564", "0.6"], ["6744.65965459", "1"], ["6747.12015259", "0.9"], ["6747.24260373", "1"], ["6750", "1"], ["6750.60089853", "0.3"], ["6754.2141362", "0.6"], ["6761.4133801", "0.8"], ["6763.03921398", "1"], ["6763.51525677", "0.3"], ["6763.6981488", "0.5"], ["6767.77242811", "1"], ["6769.78400857", "0.6"], ["6772.6000665", "1"], ["6777.63268271", "0.2"], ["6784.78420221", "0.4"], ["6788.34525729", "0.5"], ["6789.40397918", "0.7"], ["6789.46591191", "0.2"], ["6789.54741867", "0.9"], ["6791.37906366", "1"], ["6795.90389949", "0.8"], ["6914.78976997", "2.18597848"], ["6926.13971015", "0.50939117"], ["6928.4263771", "2.18073747"], ["6942.54251264", "0.1"]], "bids": [["1.2012564", "1.62995585"], ["1.201241", "1.1"], ["1.2011689", "2.13849904"], ["1.2009897", "1.13394833"], ["1.2007686", "2"], ["1.2005962", "1.79975235"], ["1.200555", "2.2"], ["1.200459", "2.2"], ["1.200286", "1.8"], ["1.200228", "1.68019653"], ["1.200093", "1.5"], ["1", "12.7"]]}, "BTC/USDT"]
 	*/
-	resp := make([]interface{}, 0)
-	err := json.Unmarshal(params, &resp)
-	if err != nil {
-		return nil
-	}
+
 	if len(resp) != 3 {
 		return nil
 	}
@@ -302,7 +293,7 @@ func getDepthList(m map[float64]float64, reverse bool) (list DepthRecords) {
 	return list
 }
 
-func (ws *EtSpotWsSingle) parseTrade(params json.RawMessage) (trades []Trade) {
+func (ws *EtSpotWsSingle) parseTrade(params []interface{}) (trades []Trade) {
 	/*
 		{
 		    "data": [{
