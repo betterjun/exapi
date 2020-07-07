@@ -701,15 +701,18 @@ func (bn *Binance) parseOrder(respmap map[string]interface{}, pair CurrencyPair)
 	}
 	ord.Market = pair
 	ord.Symbol = pair.ToLowerSymbol("/")
-	if side == "SELL" {
-		if orderType == "MARKET" {
+	if orderType == "MARKET" {
+		ord.Amount = ord.DealAmount
+		ord.Price = ord.AvgPrice
+
+		if side == "SELL" {
 			ord.Side = SELL_MARKET
 		} else {
-			ord.Side = SELL
+			ord.Side = BUY_MARKET
 		}
 	} else {
-		if orderType == "MARKET" {
-			ord.Side = BUY_MARKET
+		if side == "SELL" {
+			ord.Side = SELL
 		} else {
 			ord.Side = BUY
 		}
@@ -794,7 +797,7 @@ func (bn *Binance) placeOrder(amount, price string, pair CurrencyPair, orderType
 		params.Set("price", price)
 		params.Set("quantity", amount)
 	case "MARKET":
-		if orderSide == "SELL" {
+		if orderSide == "BUY" {
 			params.Set("quoteOrderQty", amount)
 		} else {
 			params.Set("quantity", amount)
@@ -870,7 +873,7 @@ func (bn *Binance) placeOrder(amount, price string, pair CurrencyPair, orderType
 		status = ORDER_FAIL
 	}
 
-	return &Order{
+	order := &Order{
 		OrderID:    fmt.Sprint(orderId),
 		Price:      ToFloat64(price),
 		Amount:     ToFloat64(amount),
@@ -881,7 +884,14 @@ func (bn *Binance) placeOrder(amount, price string, pair CurrencyPair, orderType
 		Market:     pair,
 		Symbol:     pair.ToLowerSymbol("/"),
 		Side:       side,
-	}, nil
+	}
+
+	if orderType == "MARKET" {
+		order.Amount = order.DealAmount
+		order.Price = order.AvgPrice
+	}
+
+	return order, nil
 }
 
 func adaptCurrencyPair(pair CurrencyPair) CurrencyPair {

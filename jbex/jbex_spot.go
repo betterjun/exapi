@@ -416,6 +416,7 @@ func (jbex *JbexSpot) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 	requrl := jbex.baseUrl + "openapi/v1/openOrders"
 	params := map[string]string{}
 	params["timestamp"] = fmt.Sprint(time.Now().Unix() * 1000)
+	params["symbol"] = pair.ToSymbol("")
 	respArr := make([]map[string]interface{}, 0)
 	err := jbex.httpGet(requrl, params, &respArr)
 	if err != nil {
@@ -438,6 +439,7 @@ func (jbex *JbexSpot) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 	requrl := jbex.baseUrl + "openapi/v1/historyOrders"
 	params := map[string]string{}
 	params["timestamp"] = fmt.Sprint(time.Now().Unix() * 1000)
+	params["symbol"] = pair.ToSymbol("")
 	respArr := make([]map[string]interface{}, 0)
 	err := jbex.httpGet(requrl, params, &respArr)
 	if err != nil {

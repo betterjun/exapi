@@ -832,11 +832,13 @@ func (hbpro *HuoBiPro) parseOrder(ordmap map[string]interface{}) Order {
 		ord.Side = BUY
 	case "buy-market":
 		ord.Side = BUY_MARKET
+		ord.Price = ord.AvgPrice
 		ord.Amount = ord.DealAmount
 	case "sell-limit":
 		ord.Side = SELL
 	case "sell-market":
 		ord.Side = SELL_MARKET
+		ord.Price = ord.AvgPrice
 		ord.Amount = ord.DealAmount
 	}
 	return ord

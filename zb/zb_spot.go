@@ -373,12 +373,12 @@ func (zb *Zb) LimitSell(pair CurrencyPair, price, amount string) (*Order, error)
 
 func (zb *Zb) MarketBuy(pair CurrencyPair, amount string) (*Order, error) {
 	// TODO 目前没有找到相关接口
-	return nil, fmt.Errorf("unsupport the market order")
+	return nil, ErrorUnsupported
 }
 
 func (zb *Zb) MarketSell(pair CurrencyPair, amount string) (*Order, error) {
 	// TODO 目前没有找到相关接口
-	return nil, fmt.Errorf("unsupport the market order")
+	return nil, ErrorUnsupported
 }
 
 func (zb *Zb) Cancel(orderId string, pair CurrencyPair) (bool, error) {
@@ -451,7 +451,6 @@ func (zb *Zb) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 
 	respstr := string(resp)
 	if strings.Contains(respstr, "\"code\":3001") {
-		log.Println(respstr)
 		return nil, nil
 	}
 

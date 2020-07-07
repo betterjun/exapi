@@ -522,9 +522,9 @@ func adaptOrderDeal(obj map[string]interface{}, orderId string, pair CurrencyPai
 		Price:            ToFloat64(obj["price"]),
 		FilledAmount:     ToFloat64(obj["amount"]),
 		FilledCashAmount: ToFloat64(obj["deal_money"]),
-		Side:             adaptTradeSide(ToString(obj["type"])),
-		Market:           pair,
-		Symbol:           pair.ToLowerSymbol("/"),
+		//Side:             adaptTradeSide(ToString(obj["type"])),
+		Market: pair,
+		Symbol: pair.ToLowerSymbol("/"),
 	}
 }
 
@@ -661,9 +661,11 @@ func adaptOrder(ordermap map[string]interface{}, pair CurrencyPair) *Order {
 
 	orderType := ToString(ordermap["order_type"])
 	if orderType == "market" {
+		ord.Price = ord.AvgPrice
+		ord.Amount = ord.DealAmount
+
 		if ord.Side == BUY {
 			ord.Side = BUY_MARKET
-			ord.Amount = ord.DealAmount
 		} else {
 			ord.Side = SELL_MARKET
 		}

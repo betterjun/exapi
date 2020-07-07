@@ -776,12 +776,16 @@ func (bitz *Bitz) parseOrder(ordmap map[string]interface{}, pair CurrencyPair) O
 	case "sale":
 		if tradeType == "2" {
 			ord.Side = SELL_MARKET
+			ord.Price = ord.AvgPrice
+			ord.Amount = ord.DealAmount
 		} else {
 			ord.Side = SELL
 		}
 	case "buy":
 		if tradeType == "2" {
 			ord.Side = BUY_MARKET
+			ord.Price = ord.AvgPrice
+			ord.Amount = ord.DealAmount
 		} else {
 			ord.Side = BUY
 		}
