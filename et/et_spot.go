@@ -117,12 +117,12 @@ func (et *Et) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	}
 	ssm := make(map[string]SymbolSetting)
 	for _, v := range resp.Data {
-		symbol := strings.ToLower(v.Name)
+		symbol := v.Name
 		minAmount, _ := strconv.ParseFloat(v.MinAmount, 64)
 		ssm[symbol] = SymbolSetting{
 			Symbol:      symbol,
-			Base:        strings.ToLower(v.Stock),
-			Quote:       strings.ToLower(v.Money),
+			Base:        v.Stock,
+			Quote:       v.Money,
 			MinSize:     math.Pow10(-v.StockPrec),
 			MinPrice:    math.Pow10(-v.MoneyPrec),
 			MinNotional: minAmount,
@@ -157,7 +157,7 @@ func (et *Et) GetAllCurrencyStatus() (all map[string]CurrencyStatus, err error) 
 	// 默认都开
 	all = make(map[string]CurrencyStatus)
 	for k, _ := range currencyMap {
-		all[strings.ToUpper(k)] = CurrencyStatus{
+		all[k] = CurrencyStatus{
 			Deposit:  true,
 			Withdraw: true,
 		}
@@ -597,7 +597,7 @@ func (et *Et) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, erro
 }
 
 func (et *Et) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (et *Et) GetAccount() (*Account, error) {

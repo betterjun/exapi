@@ -121,7 +121,7 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 	case JBEX:
 		api = jbex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	default:
-		panic("exchange name error [" + exName + "].")
+		return nil
 	}
 	if len(wsURL) > 0 {
 		api.SetURL(wsURL)
@@ -172,6 +172,6 @@ func (builder *APIBuilder) BuildSpotWebsocketWithURL(exName, wsURL, proxyURL str
 //	case OKEX_SWAP:
 //		return okex.NewOKExSwap(&APIConfig{HttpClient: builder.client, Endpoint: "https://www.okex.com", ApiKey: builder.apiKey, ApiSecretKey: builder.secretkey, ApiPassphrase: builder.apiPassphrase})
 //	default:
-//		panic(fmt.Sprintf("%s not support", exName))
+//		return nil
 //	}
 //}

@@ -146,14 +146,16 @@ func (bitz *Bitz) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	}
 
 	ssm := make(map[string]SymbolSetting)
-	for k, v := range datamap {
+	for _, v := range datamap {
 		obj := v.(map[string]interface{})
-		symbol := k
+		base := strings.ToUpper(ToString(obj["coinFrom"]))
+		quote := strings.ToUpper(ToString(obj["coinTo"]))
+		symbol := base + "/" + quote
 
 		ssm[symbol] = SymbolSetting{
 			Symbol:      symbol,
-			Base:        strings.ToUpper(ToString(obj["coinFrom"])),
-			Quote:       strings.ToUpper(ToString(obj["coinTo"])),
+			Base:        base,
+			Quote:       quote,
 			MinSize:     math.Pow10(-ToInt(obj["numberFloat"])),
 			MinPrice:    math.Pow10(-ToInt(obj["priceFloat"])),
 			MinNotional: ToFloat64(obj["minTrade"]),
@@ -171,7 +173,7 @@ func (bitz *Bitz) GetCurrencyStatus(currency Currency) (CurrencyStatus, error) {
 		return all[currency.Symbol()], nil
 	}
 
-	return CurrencyStatus{}, errors.New("Asset not found")
+	return CurrencyStatus{}, ErrorAssetNotFound
 }
 
 func (bitz *Bitz) GetAllCurrencyStatus() (all map[string]CurrencyStatus, err error) {
@@ -607,11 +609,11 @@ func (bitz *Bitz) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (bitz *Bitz) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {
-	return nil, errors.New("exchange not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (bitz *Bitz) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	return nil, errors.New("exchange not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (bitz *Bitz) GetAccount() (*Account, error) {

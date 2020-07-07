@@ -102,11 +102,6 @@ func (ws *CoinexSpotWsSingle) OnMessage(data []byte) (err error) {
 		return
 	}
 
-	//channel, ok := resp["channel"].(string)
-	//if !ok {
-	//	return
-	//}
-	//pair := ws.GetPairByStream(channel)
 	// 数据包
 	switch dataType {
 	case "state.update":
@@ -194,7 +189,7 @@ func (ws *CoinexSpotWsSingle) parseDepth(resp []interface{}) (dep *Depth) {
 	dep = &Depth{
 		Market: pair,
 		Symbol: pair.ToLowerSymbol("/"),
-		TS:     ToInt64(obj["time"]) * 1000,
+		TS:     ToInt64(obj["time"]),
 	}
 
 	bids, _ := obj["bids"].([]interface{})

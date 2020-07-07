@@ -201,16 +201,13 @@ func (bn *Binance) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 			return nil, errors.New("filters assert error")
 		}
 
-		symbol := strings.ToLower(ToString(d["symbol"]))
-		//tf := tfmap[symbol]
-
 		ss := SymbolSetting{
-			Symbol:   symbol,
-			Base:     strings.ToLower(ToString(d["baseAsset"])),
-			Quote:    strings.ToLower(ToString(d["quoteAsset"])),
+			Base:     strings.ToUpper(ToString(d["baseAsset"])),
+			Quote:    strings.ToUpper(ToString(d["quoteAsset"])),
 			MakerFee: tf.Maker,
 			TakerFee: tf.Taker,
 		}
+		ss.Symbol = ss.Base + "/" + ss.Quote
 
 		for _, f := range filters {
 			obj := f.(map[string]interface{})
@@ -225,7 +222,7 @@ func (bn *Binance) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 			}
 		}
 
-		ssm[symbol] = ss
+		ssm[ss.Symbol] = ss
 	}
 
 	return ssm, nil
@@ -251,7 +248,7 @@ func (bn *Binance) GetCurrencyStatus(currency Currency) (CurrencyStatus, error) 
 		}
 	}
 
-	return CurrencyStatus{}, errors.New("Asset not found")
+	return CurrencyStatus{}, ErrorAssetNotFound
 }
 
 func (bn *Binance) GetAllCurrencyStatus() (all map[string]CurrencyStatus, err error) {
@@ -601,7 +598,7 @@ func (bn *Binance) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (bn *Binance) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (bn *Binance) GetUserTrades(pair CurrencyPair) ([]Trade, error) {

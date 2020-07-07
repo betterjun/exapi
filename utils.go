@@ -21,7 +21,7 @@ func ToString(v interface{}) string {
 		vStr := v.(string)
 		return vStr
 	default:
-		panic("to string error.")
+		return fmt.Sprintf("%v", v)
 	}
 }
 

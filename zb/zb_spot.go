@@ -90,14 +90,14 @@ func (zb *Zb) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	}
 	ssm := make(map[string]SymbolSetting)
 	for k, v := range resp {
-		symbol := strings.ToLower(strings.Replace(k, "_", "", -1))
-		currencies := strings.Split(k, "_")
+		symbol := strings.ToUpper(strings.Replace(k, "_", "/", -1))
+		currencies := strings.Split(symbol, "/")
 
 		obj, _ := v.(map[string]interface{})
 		ssm[symbol] = SymbolSetting{
 			Symbol: symbol,
-			Base:   strings.ToLower(currencies[0]),
-			Quote:  strings.ToLower(currencies[1]),
+			Base:   currencies[0],
+			Quote:  currencies[1],
 			// 用浮点数的pow会有精度损失，在后面取整数位数时会不准
 			//MinSize:  math.Pow(0.1, ToFloat64(obj["amountScale"])),
 			//MinPrice:math.Pow(0.1, ToFloat64(obj["priceScale"])),
@@ -491,11 +491,11 @@ func (zb *Zb) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (zb *Zb) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (zb *Zb) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (zb *Zb) GetAccount() (*Account, error) {

@@ -94,7 +94,9 @@ func (jbex *JbexSpot) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 			return nil, errors.New("filters assert error")
 		}
 
-		symbol := strings.ToLower(ToString(d["symbol"]))
+		base := ToString(d["baseAsset"])
+		quote := ToString(d["quoteAsset"])
+		symbol := base + "/" + quote
 		// 发现有这种ETC-SWAP-USDT，不知道做什么的
 		if strings.Contains(symbol, "-") {
 			continue
@@ -102,8 +104,8 @@ func (jbex *JbexSpot) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 
 		ss := SymbolSetting{
 			Symbol:   symbol,
-			Base:     strings.ToLower(ToString(d["baseAsset"])),
-			Quote:    strings.ToLower(ToString(d["quoteAsset"])),
+			Base:     base,
+			Quote:    quote,
 			MakerFee: tf.Maker,
 			TakerFee: tf.Taker,
 		}
@@ -455,11 +457,11 @@ func (jbex *JbexSpot) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (jbex *JbexSpot) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {
-	return nil, errors.New("exchange not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (jbex *JbexSpot) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	return nil, errors.New("exchange not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (jbex *JbexSpot) GetAccount() (*Account, error) {

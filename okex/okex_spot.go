@@ -190,11 +190,11 @@ func (ok *OKExSpot) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	}
 	ssm := make(map[string]SymbolSetting)
 	for _, v := range response {
-		symbol := strings.ToLower(strings.Replace(v.InstrumentId, "-", "", -1))
+		symbol := strings.Replace(v.InstrumentId, "-", "/", -1)
 		ssm[symbol] = SymbolSetting{
 			Symbol:      symbol,
-			Base:        strings.ToLower(v.BaseCurrency),
-			Quote:       strings.ToLower(v.QuoteCurrency),
+			Base:        v.BaseCurrency,
+			Quote:       v.QuoteCurrency,
 			MinSize:     ToFloat64(v.SizeIncrement),
 			MinPrice:    ToFloat64(v.TickSize),
 			MinNotional: ToFloat64(v.MinSize),
@@ -220,7 +220,7 @@ func (ok *OKExSpot) GetCurrencyStatus(currency Currency) (CurrencyStatus, error)
 	}
 
 	for _, v := range response {
-		if strings.ToUpper(v.Currency) == currency.Symbol() {
+		if v.Currency == currency.Symbol() {
 			return CurrencyStatus{
 				Deposit:  ToBool(v.CanDeposit),
 				Withdraw: ToBool(v.CanWithdraw),
@@ -246,7 +246,7 @@ func (ok *OKExSpot) GetAllCurrencyStatus() (all map[string]CurrencyStatus, err e
 
 	all = make(map[string]CurrencyStatus)
 	for _, v := range response {
-		all[strings.ToUpper(v.Currency)] = CurrencyStatus{
+		all[v.Currency] = CurrencyStatus{
 			Deposit:  ToBool(v.CanDeposit),
 			Withdraw: ToBool(v.CanWithdraw),
 		}
@@ -623,7 +623,7 @@ func (ok *OKExSpot) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal
 }
 
 func (ok *OKExSpot) GetUserTrades(currencyPair CurrencyPair) ([]Trade, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (ok *OKExSpot) GetAccount() (*Account, error) {

@@ -97,7 +97,7 @@ func (coinex *CoinEx) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 		base := ToString(obj["trading_name"])
 		quote := ToString(obj["pricing_name"])
 
-		symbol := strings.ToLower(base + quote)
+		symbol := base + "/" + quote
 		ssm[symbol] = SymbolSetting{
 			Symbol:      symbol,
 			Base:        base,
@@ -137,7 +137,7 @@ func (coinex *CoinEx) GetAllCurrencyStatus() (map[string]CurrencyStatus, error) 
 	all := make(map[string]CurrencyStatus)
 	for k, v := range datamap {
 		obj, _ := v.(map[string]interface{})
-		all[strings.ToUpper(k)] = CurrencyStatus{
+		all[k] = CurrencyStatus{
 			Deposit:  ToBool(obj["can_deposit"]),
 			Withdraw: ToBool(obj["can_withdraw"]),
 		}

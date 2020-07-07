@@ -77,19 +77,6 @@ func NewSpotAPI(client *http.Client, apikey, secretkey string) SpotAPI {
 	return hb
 }
 
-/**
- * 点卡账户
- */
-func NewHuoBiProPoint(client *http.Client, apikey, secretkey string) *HuoBiPro {
-	hb := NewHuoBiPro(client, apikey, secretkey, "")
-	accinfo, err := hb.GetAccountInfo(HB_POINT_ACCOUNT)
-	if err != nil {
-		panic(err)
-	}
-	hb.accountId = accinfo.Id
-	return hb
-}
-
 func (hbpro *HuoBiPro) updateAccountID() {
 	if len(hbpro.accountId) == 0 {
 		accinfo, err := hbpro.GetAccountInfo(HB_SPOT_ACCOUNT)
@@ -229,13 +216,13 @@ func (hbpro *HuoBiPro) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	ssm := make(map[string]SymbolSetting)
 	for _, v := range dataArr {
 		obj := v.(map[string]interface{})
-		symbol := ToString(obj["symbol"])
-
-		//tf := tfmap[symbol]
+		base := strings.ToUpper(ToString(obj["base-currency"]))
+		quote := strings.ToUpper(ToString(obj["quote-currency"]))
+		symbol := base + "/" + quote
 		ssm[symbol] = SymbolSetting{
 			Symbol:      symbol,
-			Base:        ToString(obj["base-currency"]),
-			Quote:       ToString(obj["quote-currency"]),
+			Base:        base,
+			Quote:       quote,
 			MinSize:     math.Pow10(-ToInt(obj["amount-precision"])),
 			MinPrice:    math.Pow10(-ToInt(obj["price-precision"])),
 			MinNotional: ToFloat64(obj["min-order-value"]),
@@ -715,7 +702,7 @@ func (hbpro *HuoBiPro) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderD
 }
 
 func (hbpro *HuoBiPro) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	panic("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (hbpro *HuoBiPro) GetAccount() (*Account, error) {

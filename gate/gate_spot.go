@@ -84,8 +84,8 @@ func (gate *Gate) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 	for _, v := range pairs {
 		data := v.(map[string]interface{})
 		for k, v1 := range data {
-			symbol := strings.ToLower(strings.Replace(k, "_", "", -1))
-			currencies := strings.Split(k, "_")
+			symbol := strings.Replace(strings.ToUpper(k), "_", "/", -1)
+			currencies := strings.Split(symbol, "/")
 
 			obj := v1.(map[string]interface{})
 			// 去掉不可交易的币对
@@ -97,8 +97,8 @@ func (gate *Gate) GetAllCurrencyPair() (map[string]SymbolSetting, error) {
 			}
 			ssm[symbol] = SymbolSetting{
 				Symbol: symbol,
-				Base:   strings.ToLower(currencies[0]),
-				Quote:  strings.ToLower(currencies[1]),
+				Base:   currencies[0],
+				Quote:  currencies[1],
 				// 经验证，用下面的数字来计算
 				MinSize:     math.Pow10(-ToInt(obj["amount_decimal_places"])),
 				MinPrice:    math.Pow10(-ToInt(obj["decimal_places"])),
@@ -142,7 +142,7 @@ func (gate *Gate) GetAllCurrencyStatus() (all map[string]CurrencyStatus, err err
 		data := v.(map[string]interface{})
 		for k, v1 := range data {
 			obj := v1.(map[string]interface{})
-			currency := strings.ToUpper(k)
+			currency := k
 
 			delisted := ToInt(obj["delisted"])
 			trade_disabled := ToInt(obj["trade_disabled"])
@@ -360,12 +360,12 @@ func (gate *Gate) LimitSell(pair CurrencyPair, price, amount string) (*Order, er
 
 func (gate *Gate) MarketBuy(pair CurrencyPair, amount string) (*Order, error) {
 	// TODO 目前没有找到相关接口
-	return nil, fmt.Errorf("unsupport the market order")
+	return nil, ErrorUnsupported
 }
 
 func (gate *Gate) MarketSell(pair CurrencyPair, amount string) (*Order, error) {
 	// TODO 目前没有找到相关接口
-	return nil, fmt.Errorf("unsupport the market order")
+	return nil, ErrorUnsupported
 }
 
 func (gate *Gate) Cancel(orderId string, pair CurrencyPair) (bool, error) {
@@ -467,7 +467,7 @@ func (gate *Gate) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 }
 
 func (gate *Gate) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
-	return nil, fmt.Errorf("not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (gate *Gate) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal, error) {

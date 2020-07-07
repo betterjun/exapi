@@ -1,5 +1,7 @@
 package exapi
 
+import "errors"
+
 /*
 K线周期。
 */
@@ -151,3 +153,9 @@ const (
 	AOFEX       = "aofex"
 	JBEX        = "jbex"
 )
+
+// 接口暂不支持的错误
+var ErrorUnsupported = errors.New("Unsupported")
+
+// 币种未找到
+var ErrorAssetNotFound = errors.New("Asset not found")

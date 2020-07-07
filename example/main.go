@@ -7,366 +7,291 @@ import (
 	"time"
 )
 
-func main() {
-	type exchangeCfgs struct {
-		ex, accessKey, secretKey, apiPass string
-	}
-	exArr := []exchangeCfgs{
-		// TODO put your keys here
-		//exchangeCfgs{exapi.ET, "ZWFzeXRva2VuODYtMTcwMDAwMDAwMDY=", "ZWFzeXRva2VucXExMTExMTE=", ""},
-		//exchangeCfgs{exapi.JBEX, "Gr5q9LsE0fgW9Be2Kjpo63KPcV8fQ76C760aRsK2sRToLA5XlTVBLyKJ1jM5daE5", "6omXSs3uKgwb1RWLBOIAsRduDQMgEOONAdUd3xJQNwWg0Lu7dqTlcUQEzTPdyz0p", "socks5://127.0.0.1:1060"},
-		exchangeCfgs{exapi.JBEX, "Gr5q9LsE0fgW9Be2Kjpo63KPcV8fQ76C760aRsK2sRToLA5XlTVBLyKJ1jM5daE5", "6omXSs3uKgwb1RWLBOIAsRduDQMgEOONAdUd3xJQNwWg0Lu7dqTlcUQEzTPdyz0p", ""},
+// 代理
+var proxy string = "socks5://127.0.0.1:1060"
 
-		//exchangeCfgs{exapi.AOFEX, "5fda84acbf16c0431a5e69fe535cb746", "xiqq7cielx97tl2xdpuv", ""},
-		//exchangeCfgs{exapi.BITZ, "4872528c67babd24b12e9533f76a6667", "I5rCnDIagjUjroIuPNN35i7fBSEQUXCoaD3ne4AyoVH7kWaZfNbfvZm9vSZu2BFy", ""},
+// 测试配置
+type exchangeCfgs struct {
+	ex, accessKey, secretKey, apiPass string
+}
+
+// 错误检测
+func isErrorOccurred(err error) bool {
+	if err != nil && err != exapi.ErrorUnsupported {
+		return true
+	}
+	return false
+}
+
+func main() {
+	// 测试http公共接口
+	//testSpotHttpPublic()
+
+	// 测试http私有接口
+	testSpotHttpPrivate()
+
+	// 测试websocket公共接口
+	//testSpotWebsocket()
+}
+
+// 测试websocket行情订阅
+func testSpotWebsocket() {
+	exArr := []exchangeCfgs{
+		exchangeCfgs{exapi.HUOBI, "", "", ""},
+		exchangeCfgs{exapi.ET, "", "", ""},
+		exchangeCfgs{exapi.BITZ, "", "", ""},
+		exchangeCfgs{exapi.BINANCE, "", "", ""},
+		exchangeCfgs{exapi.COINEX, "", "", ""},
+		exchangeCfgs{exapi.GATE, "", "", ""},
+		exchangeCfgs{exapi.JBEX, "", "", ""},
+		exchangeCfgs{exapi.OKEX, "", "", ""},
+		exchangeCfgs{exapi.ZB, "", "", ""},
 	}
 
 	for _, v := range exArr {
-		//spot_api_run(v.ex, v.accessKey, v.secretKey, v.apiPass, "")
-		//spot_api_test(v.ex, v.accessKey, v.secretKey, v.apiPass, "")
-		//spot_api_test(v.ex, v.accessKey, v.secretKey, v.apiPass, "socks5://127.0.0.1:1060")
-		//spot_ws_test(v.ex, "socks5://127.0.0.1:1060")
-		//spot_ws_test(v.ex, "")
-
-		spot_ws_test(v.ex, "socks5://127.0.0.1:1060")
+		spot_ws_test(v.ex, proxy)
 	}
 }
 
-func spot_api_run(ex, accessKey, secretKey, apiPass, proxy string) {
-	apiBuilder := builder.NewAPIBuilder()
-	apiBuilder.HttpProxy(proxy).APIKey(accessKey).APISecretkey(secretKey)
-	if ex == exapi.OKEX {
-		apiBuilder.ApiPassphrase(apiPass)
+// 测试http公共接口
+func testSpotHttpPublic() {
+	exArr := []exchangeCfgs{
+		exchangeCfgs{exapi.AOFEX, "", "", ""},
+		//exchangeCfgs{exapi.BINANCE, "", "", ""}, // 需要设置apikey
+		exchangeCfgs{exapi.BITZ, "", "", ""},
+		exchangeCfgs{exapi.COINEX, "", "", ""},
+		exchangeCfgs{exapi.ET, "", "", ""},
+		exchangeCfgs{exapi.GATE, "", "", ""},
+		exchangeCfgs{exapi.HUOBI, "", "", ""},
+		exchangeCfgs{exapi.JBEX, "", "", ""},
+		//exchangeCfgs{exapi.OKEX, "", "", ""}, // 需要设置apikey
+		exchangeCfgs{exapi.ZB, "", "", ""},
 	}
-	api := apiBuilder.BuildSpot(ex)
 
-	log.Println(ex, "ExchangeName", api.GetExchangeName())
-
-	currencyPair := exapi.NewCurrencyPairFromString("neo/usdt")
-
-	for {
-		orderBuy, err := api.LimitBuy(currencyPair, "4.4", "1")
-		if err != nil {
-			log.Println(ex, err)
-			continue
-		}
-		log.Println(ex, "orderBuy", orderBuy)
-
-		//time.Sleep(time.Second * 3)
-
-		ok, err := api.Cancel(orderBuy.OrderID, currencyPair)
-		if err != nil {
-			log.Println(ex, err)
-			continue
-		}
-		log.Println(ex, "ok", ok)
-
-		//time.Sleep(time.Second * 3)
+	for _, v := range exArr {
+		spot_api_public_test(v.ex, proxy)
 	}
 }
 
-func spot_api_test2(ex, accessKey, secretKey, apiPass, proxy string) {
+func spot_api_public_test(ex, proxy string) {
 	apiBuilder := builder.NewAPIBuilder()
-	apiBuilder.HttpProxy(proxy).APIKey(accessKey).APISecretkey(secretKey)
-	if ex == exapi.OKEX {
-		apiBuilder.ApiPassphrase(apiPass)
-	}
+	apiBuilder.HttpProxy(proxy)
 	api := apiBuilder.BuildSpot(ex)
 
-	log.Println(ex, "ExchangeName", api.GetExchangeName())
-
-	currencyPair := exapi.NewCurrencyPairFromString("xrp/usdt")
-
-	finishedOrders, err := api.GetFinishedOrders(currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
+	if ex != api.GetExchangeName() {
+		log.Fatalf("%v, GetExchangeName Failed, expect %q, got %q\n", ex, ex, api.GetExchangeName())
 	}
-	log.Println(ex, "finishedOrders", finishedOrders)
-
-	//marketOrderBuy, err := api.MarketBuy(currencyPair, "1")
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "marketOrderBuy", marketOrderBuy)
-	//
-	//orderGet, err := api.GetOrder(marketOrderBuy.OrderID, currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "orderGet", orderGet)
-	//
-	//orderDeals, err := api.GetOrderDeal(marketOrderBuy.OrderID, currencyPair)
-	//for i, v := range orderDeals {
-	//	log.Println(ex, "marketOrderBuy deals", i, v)
-	//}
-
-	marketOrderSell, err := api.MarketSell(currencyPair, "1")
-	if err != nil {
-		log.Println(ex, err)
-		return
-	}
-	log.Println(ex, "marketOrderSell", marketOrderSell)
-
-	orderGet, err := api.GetOrder(marketOrderSell.OrderID, currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
-	}
-	log.Println(ex, "orderGet", orderGet)
-}
-
-func spot_api_test(ex, accessKey, secretKey, apiPass, proxy string) {
-	apiBuilder := builder.NewAPIBuilder()
-	apiBuilder.HttpProxy(proxy).APIKey(accessKey).APISecretkey(secretKey)
-	if ex == exapi.OKEX {
-		apiBuilder.ApiPassphrase(apiPass)
-	}
-	api := apiBuilder.BuildSpot(ex)
-
-	log.Println(ex, "ExchangeName", api.GetExchangeName())
 
 	ssArr, err := api.GetAllCurrencyPair()
-	if err != nil {
-		log.Println(err)
-		return
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetAllCurrencyPair Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	log.Println(ex, "ssArr", ssArr)
+	log.Println(ex, "GetAllCurrencyPair", ssArr)
 
-	log.Println(ex, "currency list", exapi.GetCurrencyMap(ssArr))
+	log.Println(ex, "GetCurrencyMap", exapi.GetCurrencyMap(ssArr))
 
-	//cs, err := api.GetCurrencyStatus(exapi.NewCurrency("btc"))
-	//log.Println(ex, cs, err)
-	//csmap, err := api.GetAllCurrencyStatus()
-	//log.Println(ex, csmap, err)
-	//
-	currencyPair := exapi.NewCurrencyPairFromString("neo/usdt")
-	//
-	//ticker, err := api.GetTicker(currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "ticker", *ticker)
-	//
-	//tickers, err := api.GetAllTicker()
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "tickers", tickers)
-	//
-	//depth, err := api.GetDepth(currencyPair, 50, 0)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "depth", *depth)
-	//
-	//trades, err := api.GetTrades(currencyPair, 10)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "trades", trades)
-	//
-	//klines, err := api.GetKlineRecords(currencyPair, exapi.KLINE_M1, 100, 0)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "klines", klines)
-	//
-	//accounts, err := api.GetAccount()
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "accounts", accounts)
-
-	//for {
-	//finishedOrders, err := api.GetFinishedOrders(currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "finishedOrders", finishedOrders)
-
-	finishedOrders, err := api.GetFinishedOrders(currencyPair)
-	if err != nil {
-		log.Println(ex, err)
+	cs, err := api.GetCurrencyStatus(exapi.NewCurrency("btc"))
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetCurrencyStatus Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	for i, v := range finishedOrders {
-		log.Println(ex, "GetFinishedOrders", i, v)
+	log.Println(ex, "GetCurrencyStatus", cs)
+
+	csmap, err := api.GetAllCurrencyStatus()
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetAllCurrencyStatus Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetAllCurrencyStatus", csmap)
+
+	currencyPair := exapi.NewCurrencyPairFromString("btc/usdt")
+	ticker, err := api.GetTicker(currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetTicker Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetTicker", *ticker)
+
+	tickers, err := api.GetAllTicker()
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetAllTicker Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetAllTicker", tickers)
+
+	depth, err := api.GetDepth(currencyPair, 50, 0)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetDepth Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetDepth", *depth)
+
+	trades, err := api.GetTrades(currencyPair, 10)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetTrades Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetTrades", trades)
+
+	klines, err := api.GetKlineRecords(currencyPair, exapi.KLINE_M1, 100, 0)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetKlineRecords Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetKlineRecords", klines)
+}
+
+// 测试http私有接口
+func testSpotHttpPrivate() {
+	exArr := []exchangeCfgs{
+		// TODO 设置各个交易所的apikey，进行测试
+		exchangeCfgs{exapi.AOFEX, "", "", ""},
+	}
+
+	for _, v := range exArr {
+		spot_api_private_test(v.ex, v.accessKey, v.secretKey, v.apiPass, proxy)
+	}
+}
+
+func spot_api_private_test(ex, accessKey, secretKey, apiPass, proxy string) {
+	apiBuilder := builder.NewAPIBuilder()
+	apiBuilder.HttpProxy(proxy).APIKey(accessKey).APISecretkey(secretKey).ApiPassphrase(apiPass)
+	api := apiBuilder.BuildSpot(ex)
+
+	cp := exapi.NewCurrencyPairFromString("btc/usdt")
+
+	spot_api_private_trade_test(ex, api, cp)
+	spot_api_private_query_test(ex, api, cp)
+}
+
+func spot_api_private_query_test(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
+	orders, err := api.GetPendingOrders(currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetPendingOrders Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetPendingOrders", orders)
+	spot_api_private_query_order_test(ex, api, currencyPair, orders)
+
+	orders, err = api.GetFinishedOrders(currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetFinishedOrders Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetFinishedOrders", orders)
+	spot_api_private_query_order_test(ex, api, currencyPair, orders)
+
+	trades, err := api.GetUserTrades(currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetUserTrades Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetUserTrades", trades)
+
+	accounts, err := api.GetAccount()
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetAccount Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetAccount", accounts)
+}
+
+func spot_api_private_query_order_test(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair, orders []exapi.Order) {
+	for i, v := range orders {
+		log.Println(ex, "orders", i, v)
 
 		orderGet, err := api.GetOrder(v.OrderID, currencyPair)
-		if err != nil {
-			log.Println(ex, err)
-			continue
+		if isErrorOccurred(err) {
+			log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
 		}
 		log.Println(ex, "orderGet", orderGet)
 
 		orderDeals, err := api.GetOrderDeal(v.OrderID, currencyPair)
-		if err != nil {
-			log.Println(ex, err)
-			continue
+		if isErrorOccurred(err) {
+			log.Fatalf("%v, GetOrderDeal Failed, expect %q, got %q\n", ex, nil, err)
 		}
-		//log.Println(ex, "orderDeals", orderDeals)
+		log.Println(ex, "orderDeals", orderDeals)
 
 		for j, d := range orderDeals {
 			log.Println(ex, "GetOrderDeal", j, d)
 		}
-
 	}
-	//
-	//	return
-	//	//
-	//	//pendingOrders, err := api.GetPendingOrders(currencyPair)
-	//	//if err != nil {
-	//	//	log.Println(ex, err)
-	//	//}
-	//	//for i, v := range pendingOrders {
-	//	//	log.Println(ex, "pendingOrders", i, v)
-	//	//
-	//	//	//orderGet, err := api.GetOrder(v.OrderID, currencyPair)
-	//	//	//if err != nil {
-	//	//	//	log.Println(ex, err)
-	//	//	//	continue
-	//	//	//}
-	//	//	//log.Println(ex, "orderGet", orderGet)
-	//	//}
-	//
-	//	//time.Sleep(time.Second)
-	//}
+}
 
-	//orderBuy, err := api.LimitBuy(currencyPair, "7.0", "0.8")
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "orderBuy", orderBuy)
-	//
-	//orderGet, err := api.GetOrder(orderBuy.OrderID, currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "orderGet", orderGet)
+func spot_api_private_trade_test(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
+	//spot_api_trade_limit_buy(ex, api, currencyPair)
+	//spot_api_trade_limit_sell(ex, api, currencyPair)
+	//spot_api_trade_market_buy(ex, api, currencyPair)
+	//spot_api_trade_market_sell(ex, api, currencyPair)
+}
 
-	orderSell, err := api.LimitSell(currencyPair, "700", "0.1")
-	if err != nil {
-		log.Println(ex, err)
-		return
+func spot_api_trade_limit_buy(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
+	orderBuy, err := api.LimitBuy(currencyPair, "7.0", "1")
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, LimitBuy Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	log.Println(ex, "orderSell", orderSell)
+	log.Println(ex, "LimitBuy", orderBuy)
+
+	orderGet, err := api.GetOrder(orderBuy.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetOrder", orderGet)
+
+	ok, err := api.Cancel(orderBuy.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, Cancel Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "Cancel", ok)
+
+	orderGet, err = api.GetOrder(orderBuy.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetOrder", orderGet)
+}
+
+func spot_api_trade_limit_sell(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
+	orderSell, err := api.LimitSell(currencyPair, "70000", "0.01")
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, LimitSell Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "LimitSell", orderSell)
 
 	orderGet, err := api.GetOrder(orderSell.OrderID, currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	log.Println(ex, "orderGet", orderGet)
+	log.Println(ex, "GetOrder", orderGet)
 
-	//orderGet, err = api.GetOrder(orderBuy.OrderID, currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "orderGet", orderGet)
-
-	//for _, v := range []string{"SL113371415931824691119FC0AE", "SL113371415931821605959YM7VW"} {
-	//	orderGet, err := api.GetOrder(v, currencyPair)
-	//	if err != nil {
-	//		log.Println(ex, err)
-	//		return
-	//	}
-	//	log.Println(ex, "orderGet", orderGet)
-	//}
-
-	pendingOrders, err := api.GetPendingOrders(currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
+	ok, err := api.Cancel(orderSell.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, Cancel Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	for i, v := range pendingOrders {
-		log.Println(ex, "pendingOrders", i, v)
-		ok, err := api.Cancel(v.OrderID, currencyPair)
-		if err != nil {
-			log.Println(ex, err)
-			return
-		}
-		log.Println(ex, "ok", ok)
+	log.Println(ex, "Cancel", ok)
 
-		orderGet, err := api.GetOrder(v.OrderID, currencyPair)
-		if err != nil {
-			log.Println(ex, err)
-			return
-		}
-		log.Println(ex, "orderGet", orderGet)
+	orderGet, err = api.GetOrder(orderSell.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
 	}
+	log.Println(ex, "GetOrder", orderGet)
+}
 
-	finishedOrders, err = api.GetFinishedOrders(currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
-	}
-	log.Println(ex, "finishedOrders", finishedOrders)
-
-	marketOrderSell, err := api.MarketSell(currencyPair, "0.1")
-	if err != nil {
-		log.Println(ex, err)
-		return
-	}
-	log.Println(ex, "marketOrderSell", marketOrderSell)
-
-	orderGet, err = api.GetOrder(marketOrderSell.OrderID, currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
-	}
-	log.Println(ex, "orderGet", orderGet)
-
+func spot_api_trade_market_buy(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
 	marketOrderBuy, err := api.MarketBuy(currencyPair, "1")
-	if err != nil {
-		log.Println(ex, err)
-		return
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, MarketBuy Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	log.Println(ex, "marketOrderBuy", marketOrderBuy)
+	log.Println(ex, "MarketBuy", marketOrderBuy)
 
-	orderGet, err = api.GetOrder(marketOrderBuy.OrderID, currencyPair)
-	if err != nil {
-		log.Println(ex, err)
-		return
+	orderGet, err := api.GetOrder(marketOrderBuy.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
 	}
-	log.Println(ex, "orderGet", orderGet)
+	log.Println(ex, "GetOrder", orderGet)
+}
 
-	//orderDeals, err := api.GetOrderDeal(marketOrderBuy.OrderID, currencyPair)
-	//for i, v := range orderDeals {
-	//	log.Println(ex, "marketOrderBuy deals", i, v)
-	//}
+func spot_api_trade_market_sell(ex string, api exapi.SpotAPI, currencyPair exapi.CurrencyPair) {
+	marketOrderSell, err := api.MarketSell(currencyPair, "0.1")
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, MarketSell Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "MarketSell", marketOrderSell)
 
-	//orderDeals, err = api.GetOrderDeal(marketOrderSell.OrderID, currencyPair)
-	//for i, v := range orderDeals {
-	//	log.Println(ex, "marketOrderSell deals", i, v)
-	//}
-	//
-	//userTrades, err := api.GetUserTrades(currencyPair)
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "userTrades", userTrades)
-
-	//accounts, err := api.GetAccount()
-	//if err != nil {
-	//	log.Println(ex, err)
-	//	return
-	//}
-	//log.Println(ex, "accounts", accounts)
-
-	return
+	orderGet, err := api.GetOrder(marketOrderSell.OrderID, currencyPair)
+	if isErrorOccurred(err) {
+		log.Fatalf("%v, GetOrder Failed, expect %q, got %q\n", ex, nil, err)
+	}
+	log.Println(ex, "GetOrder", orderGet)
 }
 
 func spot_ws_test(ex, proxy string) {
@@ -377,10 +302,10 @@ func spot_ws_test(ex, proxy string) {
 	}
 
 	markets := []string{
-		"fm/usdt",
-		//"xrp/usdt",
-		//"btc/usdt",
-		//"eth/usdt",
+		//"fm/usdt",
+		//"ht/usdt",
+		"btc/usdt",
+		"eth/usdt",
 		//"eos/usdt",
 		//"trx/usdt",
 		//"xrp/usdt",
@@ -390,8 +315,8 @@ func spot_ws_test(ex, proxy string) {
 
 	for _, v := range markets {
 		spotws.SubTicker(exapi.NewCurrencyPairFromString(v), onTicker)
-		//spotws.SubDepth(exapi.NewCurrencyPairFromString(v), onDepth)
-		//spotws.SubTrade(exapi.NewCurrencyPairFromString(v), onTrade)
+		spotws.SubDepth(exapi.NewCurrencyPairFromString(v), onDepth)
+		spotws.SubTrade(exapi.NewCurrencyPairFromString(v), onTrade)
 	}
 
 	time.Sleep(time.Second * 6000)

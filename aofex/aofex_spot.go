@@ -522,7 +522,7 @@ func (aofex *Aofex) GetOrderDeal(orderId string, pair CurrencyPair) ([]OrderDeal
 }
 
 func (aofex *Aofex) GetUserTrades(pair CurrencyPair) ([]Trade, error) {
-	return nil, errors.New("exchange not supported yet")
+	return nil, ErrorUnsupported
 }
 
 func (aofex *Aofex) GetAccount() (*Account, error) {
