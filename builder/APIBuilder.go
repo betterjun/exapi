@@ -13,6 +13,7 @@ import (
 	"github.com/betterjun/exapi/huobi"
 	"github.com/betterjun/exapi/jbex"
 	"github.com/betterjun/exapi/okex"
+	"github.com/betterjun/exapi/upex"
 	"github.com/betterjun/exapi/zb"
 	"net"
 	"net/http"
@@ -120,6 +121,8 @@ func (builder *APIBuilder) BuildSpotWithURL(exName, wsURL string) (api SpotAPI) 
 		api = aofex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	case JBEX:
 		api = jbex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
+	case UPEX:
+		api = upex.NewSpotAPI(builder.client, builder.apiKey, builder.secretkey)
 	default:
 		return nil
 	}

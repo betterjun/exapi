@@ -152,6 +152,7 @@ const (
 	BITZ        = "bitz"
 	AOFEX       = "aofex"
 	JBEX        = "jbex"
+	UPEX        = "upex"
 )
 
 // 接口暂不支持的错误
