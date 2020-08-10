@@ -277,7 +277,7 @@ func (upex *Upex) GetDepth(pair CurrencyPair, size int, step int) (*Depth, error
 }
 
 func (upex *Upex) GetTrades(pair CurrencyPair, size int) ([]Trade, error) {
-	//url := upex.baseUrl + "openApi/market/trade?symbol=" + pair.ToSymbol("-")
+	//url := upex.baseUrl + "openApi/market/trade?symbol=" + pair.ToLowerSymbol("")
 	//datamap, err := upex.getDataMap(url)
 	//if err != nil {
 	//	return nil, err
@@ -321,7 +321,7 @@ func (upex *Upex) GetKlineRecords(pair CurrencyPair, period KlinePeriod, size, s
 	//	return nil, fmt.Errorf("unsupported %v KlinePeriod:%v", upex.GetExchangeName(), period)
 	//}
 	//url := upex.baseUrl + "openApi/market/kline?symbol=%s&period=%v&size=%v"
-	//symbol := pair.ToSymbol("-")
+	//symbol := pair.ToLowerSymbol("")
 	//datamap, err := upex.getDataMap(fmt.Sprintf(url, symbol, periodS, size))
 	//if err != nil {
 	//	return nil, err
@@ -490,7 +490,7 @@ func (upex *Upex) GetPendingOrders(pair CurrencyPair) ([]Order, error) {
 func (upex *Upex) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 	requrl := upex.baseUrl + "/v2/all_order"
 	params := map[string]string{}
-	params["symbol"] = pair.ToSymbol("-")
+	params["symbol"] = pair.ToLowerSymbol("")
 	params["pageSize"] = fmt.Sprint(100)
 	params["page"] = fmt.Sprint(1)
 
@@ -512,7 +512,10 @@ func (upex *Upex) GetFinishedOrders(pair CurrencyPair) ([]Order, error) {
 	orders := make([]Order, 0, len(dataArr))
 	for _, v := range dataArr {
 		obj, _ := v.(map[string]interface{})
-		orders = append(orders, upex.parseOrder(obj, pair))
+		ord := upex.parseOrder(obj, pair)
+		if ord.Status == ORDER_FINISH || ord.Status == ORDER_CANCEL {
+			orders = append(orders, ord)
+		}
 	}
 
 	return orders, nil
@@ -636,7 +639,7 @@ func (upex *Upex) placeOrder(amount, price string, pair CurrencyPair, side, orde
 	*/
 	requrl := upex.baseUrl + "/create_order"
 	params := map[string]string{}
-	params["symbol"] = pair.ToSymbol("-")
+	params["symbol"] = pair.ToLowerSymbol("")
 	params["side"] = side
 	params["type"] = orderType
 	params["volume"] = amount
@@ -749,6 +752,7 @@ func (upex *Upex) parseOrderDeal(orderId string, side TradeSide, trades []interf
 		if !ok {
 			continue
 		}
+
 		deal := OrderDeal{
 			OrderID:          orderId,
 			DealID:           fmt.Sprint(ToInt64(dealMap["id"])),
@@ -758,12 +762,13 @@ func (upex *Upex) parseOrderDeal(orderId string, side TradeSide, trades []interf
 			Side:             side,
 			Market:           pair,
 			Symbol:           pair.ToLowerSymbol("/"),
+			TS:               ToInt64(dealMap["ctime"]),
 		}
 		//date, err := time.ParseInLocation("2006-01-02 15:04:05", ToString(dealMap["created_at"]), time.Local)
-		date, err := time.ParseInLocation("01-02 15:04", ToString(dealMap["created_at"]), time.Local)
-		if err == nil {
-			deal.TS = date.Unix() * 1000
-		}
+		//date, err := time.ParseInLocation("01-02 15:04", ToString(dealMap["created_at"]), time.Local)
+		//if err == nil {
+		//	deal.TS = date.Unix() * 1000
+		//}
 
 		deals = append(deals, deal)
 	}
